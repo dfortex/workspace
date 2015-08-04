@@ -1,0 +1,59 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class GUI extends Frame implements ActionListener
+{
+	private Label lbinput;
+	private Label lboutput;
+	private TextField tfinput;
+	private TextField tfoutput;
+	private int number;
+	private int sum = 0;
+	private Frame f;
+	
+	public GUI()
+	{
+		setLayout(new FlowLayout());
+		lbinput = new Label("Enter an Integer: ");
+		f.add(lbinput);
+		
+		tfinput = new TextField(10);
+		f.add(tfinput);
+		
+		tfinput.addActionListener(this);
+		
+		lboutput = new Label("The Accumulated Sum is: ");
+		f.add(lboutput);
+		
+		tfoutput = new TextField(10);
+		tfoutput.setEditable(false);
+		f.add(tfoutput);
+		
+		f.setTitle("GUI Accumulator");
+		f.setSize(350, 120);
+		f.setVisible(true);
+		
+		addWindowListener(new WindowAdaptor(){
+			public void windowClosing(WindowEvent e)
+			{
+				System.exit(0);
+			}
+		});
+	}
+	
+	public static void main(String[] args) 
+	{
+		// TODO Auto-generated method stub
+		new GUI();
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Auto-generated method stub
+		number = Integer.parseInt(tfinput.getText());
+		sum += number;
+		tfinput.setText("");
+		tfoutput.setText(sum + "");
+	}
+
+}

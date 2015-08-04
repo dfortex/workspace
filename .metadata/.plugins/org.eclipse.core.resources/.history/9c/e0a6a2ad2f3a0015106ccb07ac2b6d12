@@ -1,0 +1,506 @@
+import java.io.BufferedReader; 
+import java.io.File; 
+import java.io.FileNotFoundException; 
+import java.io.FileReader; 
+import java.io.IOException; 
+import java.util.ArrayList; 
+import java.util.Collections; 
+import java.util.Iterator; 
+import java.util.Scanner; 
+import java.util.Set; 
+import java.util.TreeMap; 
+
+public class BigScanner 
+{          
+	private int current_read;          
+	private int state;          
+	private String token_under_construction;          
+	public BigScanner()           
+	{                   
+		token_under_construction = "";                   
+		current_read = 0;                   
+		state = 0;          
+	}          
+	public String read_characters(File sourceFile) throws IOException           
+	{                   
+		char currentChar = ' ';                   
+		int ready = 0;                   
+		boolean buffered = false;                   
+		String print = "", string = "";                   
+		ArrayList<String> reservedwords = new ArrayList<String>();                   
+		ArrayList<String> userwords = new ArrayList<String>();                   
+		TreeMap UserMap = new TreeMap();                   
+		
+		try                    
+		{                            
+			BufferedReader reader = new BufferedReader(new FileReader(sourceFile));                            
+			Scanner scan = new Scanner(new File("reservedWords.txt"));                            
+			while(scan.hasNext())                            
+			{                                     
+				reservedwords.add(scan.nextLine().trim());                            
+			}                            
+			if(!reader.ready())                                     
+				ready = -1;                            
+			while(reader.ready() || ready != -1)                             
+			{                            
+				if ((!buffered) || currentChar==' '|| currentChar=='\r' || currentChar == '\n' || currentChar == '\t')
+				{                                              
+					ready = reader.read();                                              
+					currentChar = (char)ready;                                     
+				}                            
+				if (Character.isLetter(currentChar))                                      
+				{                                              
+					current_read = 0;                                     
+				}                             
+				else if (Character.isDigit(currentChar))                                      
+				{                                              
+					current_read = 1;                                     
+				}                             
+				else                                     
+				{
+					switch (currentChar)                                               
+					{                                                       
+						case '[':                                                                
+							current_read = 2;                                                                
+							break;                                                       
+						case '/':                                                                
+							current_read = 3;                                                                
+							break;                                                       
+						case '$':                                                                
+							current_read = 4;                                                                
+							break;                                                       
+						case ']':                                                                
+							current_read = 5;                                                                
+							break;                                                       
+						case '<':                                                                
+							current_read = 6;                                                                
+							break;                                                       
+						case '>':                                                                
+							current_read = 7;                                                                
+							break;                                                       
+						case '{':                                                                
+							current_read = 8;                                                                
+							break;                                                       
+						case '}':                                                                
+							current_read = 9;                                                                
+							break;                                                       
+						case '@':                                                                
+							current_read = 10;                                                                
+							break;                                                       
+						case '&':                                                                
+							current_read = 11;                                                                
+							break;                                                       
+						case '#':                                                                
+							current_read = 12;                                                                
+							break;                                                       
+						case '!':                                                                
+							current_read = 13;                                                                
+							break;                                                       
+						case '~':                                                                
+							current_read = 14;                                                                
+							break;                                                       
+						case '\'':                                                                
+							current_read = 15;                                                                
+							break;                                                       
+						case '"':                                                                
+							current_read = 16;                                                                
+							break;                                                       
+						case ':':                                                                
+							current_read = 17;                                                                
+							break;                                                       
+						case ';':                                                                
+							current_read = 18;                                                                
+							break;                                                       
+						case '.':                                                                
+							current_read = 19;                                                                
+							break;                                                       
+						case ',':                                                                
+							current_read = 20;                                                                
+							break;                                                       
+						case '+':                                                                
+							current_read = 21;                                                                
+							break;                                                       
+						case '-':                                                                
+							current_read = 22;                                                                
+							break;                                                       
+						case '*':                                                                
+							current_read = 23;                                                                
+							break;                                                       
+						case '=':                                                                
+							current_read = 24;                                                                
+							break; 
+                        case '^':                                                                
+                        	current_read = 25;                                                                
+                        	break;                                                       
+                        case '(':                                                                
+                        	current_read = 26;                                                                
+                        	break;                                                       
+                        case ')':                                                                
+                        	current_read = 27;                                                                
+                        	break;                                                       
+                        case '_':                                                                
+                        	current_read = 28;                                                                
+                        	break;                                                       
+                        case ' ':                                                                
+                        	current_read = 29;                                                                
+                        	break;                                                       
+                        case '\r':                                                                
+                        	current_read = 30;                                                                
+                        	break;                                                       
+                        default:                                                                
+                        	current_read = 31;                                                                
+                        	break;                                              
+                    }                                     
+				}                                     
+				if ((next_state(state,current_read) != -1) && (action(state,current_read) == 1))                                      
+				{                                              
+					buffered = false;                                              
+					token_under_construction = token_under_construction + currentChar;                                              
+					state = next_state(state,current_read);                                     
+				}                                     
+				else if ((next_state(state,current_read) == -1) && (action(state,current_read) == 2))                                      
+				{                                              
+					buffered = true;                                              
+					switch (look_up(state,current_read))                                               
+					{                                              
+						case 1:                                                       
+							if(reservedwords.contains(token_under_construction) == true)                                                       
+							{                                                       
+								print = print + token_under_construction + " => Identifier EXISTS in table" + "\n";                                                       
+							}                                                       
+							else                                                       
+							{                                                       
+								print = print + token_under_construction + " => Identifier inserted into table" + "\n";       
+								reservedwords.add(token_under_construction);                                                       
+								userwords.add(token_under_construction);                                                      
+							}                                                   
+							if(UserMap.containsKey(token_under_construction) == true)            
+							{                                              
+								UserMap.put(token_under_construction,(int)  UserMap.get(token_under_construction) + 1);    
+							}                                                   
+							else                                                    
+								UserMap.put(token_under_construction, (1));                                         
+							break;                                                                                                       
+						case 2:                                                    
+							print = print + token_under_construction + " => Valid Integer" + "\n";                      
+							break;                                        
+						case 3:                                                 
+							print = print + token_under_construction + " => Simple Operator [" + "\n";                 
+							break;                                        
+						case 4:                                                 
+							print = print + token_under_construction + " => Simple Operator /" + "\n";         
+							break;                                   
+						case 5:                                              
+							print = print + token_under_construction + " => Simple Operator $" + "\n"; 
+						case 6:                                                                
+							print = print + token_under_construction + " => Simple Operator <" + "\n";                                                                
+							break;                                                       
+						case 7:                                                                
+							print = print + token_under_construction + " => Simple Operator >" + "\n";                                                                
+							break;                                                       
+						case 8:                                                                
+							print = print + token_under_construction + " => Simple Operator {" + "\n";                                                                
+							break;                                                       
+						case 9:                                                                
+							print = print + token_under_construction + " => Simple Operator }" + "\n";                                                                
+							break;                                                       
+						case 10:                                                                
+							print = print + token_under_construction + " => Simple Operator @" + "\n";                                                                
+							break;                                                       
+						case 11:                                                                
+							print = print + token_under_construction + " => Simple Operator &" + "\n";                                                                
+							break;                                                       
+						case 12:                                                                
+							print = print + token_under_construction + " => Simple Operator #" + "\n";                                                                
+							break;                                                       
+						case 13:                                                                
+							print = print + token_under_construction + " => Simple Operator !" + "\n";                                                                
+							break;                                                       
+						case 14:                                                                
+							print = print + token_under_construction + " => Simple Operator ~" + "\n";                                                                
+							break;                                                       
+						case 15:                                                                
+							print = print + token_under_construction + " => Simple Operator '" + "\n";                                                                
+							break;                                                       
+						case 16:                                                                
+							print = print + token_under_construction + " => Simple Operator \"" + "\n";                                                                
+							break;                                                       
+						case 17:                                                                
+							print = print + token_under_construction + " => Simple Operator :" + "\n";                                                                
+							break;                                                  
+						case 18:                                                  
+							print = print + token_under_construction + " => Simple Operator ;" + "\n";                   
+							break;                                                    
+						case 19:                                                         
+							print = print + token_under_construction + " => Simple Operator ." + "\n";              
+							break;           
+						case 20:           
+							print = print + token_under_construction + " => Simple Operator ," + "\n";      
+							break;                     
+						case 21:              
+							print = print + token_under_construction + " => Simple Operator +" + "\n";                
+							break;                   
+						case 22:                   
+							print = print + token_under_construction + " => Simple Operator -" + "\n";  
+							break;                      
+						case 23:                 
+							print = print + token_under_construction + " => Simple Operator *" + "\n";        
+							break;       
+						case 24:                  
+							print = print + token_under_construction + " => Simple Operator =" + "\n";    
+							break;               
+						case 25:                   
+							print = print + token_under_construction + " => Simple Operator ^" + "\n";    
+							break;                    
+						case 26:                   
+							print = print + token_under_construction + " => Simple Operator (" + "\n";    
+							break; 
+                        case 27:                                                 
+                        	print = print + token_under_construction + " => Simple Operator )" + "\n";   
+                        	break;                  
+                        case 28:                 
+                        	print = print + token_under_construction + " => Compund Operator /=" + "\n";    
+                        	break;               
+                        case 29:             
+                        	print = print + token_under_construction + " => Compund Operator <<" + "\n";  
+                        	break;    
+                        case 30:             
+                        	print = print + token_under_construction + " => Compound Operator <>" + "\n";    
+                        	break;              
+                        case 31:             
+                            print = print + token_under_construction + " => Compound Operator <=" + "\n";  
+                            break;         
+                        case 32:          
+                        	print = print + token_under_construction + " => Compound Operator >>" + "\n";        
+                        	break;                
+                        case 33:          
+                        	print = print + token_under_construction + " => Compound Operator >=" + "\n";  
+                            break;                                         
+                        case 34:                                    
+                        	print = print + token_under_construction + " => Compound Operator !!" + "\n";         
+                        	break;                                          
+                        case 35:                         
+                        	print = print + token_under_construction + " => Compound Operator !=" + "\n";     
+                        	break;                           
+                        case 36:                          
+                        	print = print + token_under_construction + " => String Literal" + "\n";     
+                        	break;                                          
+                        case 37:                               
+                        	print = print + token_under_construction + " => Valid Real Number" + "\n";   
+                        	break;                    
+                        case 38:                                  
+                        	print = print + token_under_construction + " => Compound Operator ++" + "\n";       
+                        	break;                              
+                        case 39:                                    
+                        	print = print + token_under_construction + " => Compound Operator +-" + "\n";             
+                        	break;                          
+                        case 40:                                      
+                        	print = print + token_under_construction + " => Compound Operator -+" + "\n";        
+                        	break;                                    
+                        case 41:                                           
+                        	print = print + token_under_construction + " => Compound Operator --" + "\n";   
+                        	break;                                         
+                        case 42:                                     
+                        	print = print + token_under_construction + " => Compound Operator ==" + "\n";        
+                        	break;                                        
+                        case 43:                                  
+                        	print = print + token_under_construction.trim() + " => Comment" + "\n";          
+                        	break;                                   
+                        case 44:                                 
+                        	print = print + token_under_construction + " => File Token" + "\n";        
+                        	break;                               
+                        case 45:                                    
+                        	print = print + token_under_construction + " => Valid Currency Literal" + "\n";      
+                        	break;                 
+                        case 46:                            
+                        	print = print + token_under_construction + " => Valid Scientific Notation" + "\n";    
+                        	break;                   
+                        case 47:                              
+                        	print = print + token_under_construction + " => Simple Operator ]" + "\n";       
+                        	break; 
+                        case 48:                                           
+                        	print = print + token_under_construction + " => Compound Operator :=" + "\n";                                             
+                        	break;                                   
+                        default:                                       
+                        	print = print + "ERROR" + "\n";                                          
+                        	break; 
+					}
+					state = 0;
+					token_under_construction = "";
+				}
+			}
+			Collections.sort(userwords, Collections.reverseOrder());
+			print = print + "DONE SCANNING" + "\n";
+			print = print + "\tUser Table\n";
+			print = print + "---------------------------------\n";
+			for(int j = 0; j < userwords.size(); j++)
+			{
+				string = userwords.get(j);
+				string = string.format("%-20.20s", string);
+				print = print + string + "\t\t" + UserMap.get(userwords.get(j)) + "\n";
+			}
+			print = print + "--------------------------------------";
+			reader.close();
+		}
+		catch(FileNotFoundException e)
+		{
+			print = print + "File not Found" + "\n";
+			e.printStackTrace();
+		}
+		return print;
+	}
+	public int action(int new_state, int new_char)
+	{
+		final int[][] action_table = new int[][]
+		{
+			{ 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },             
+			{ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },          
+			{ 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },       
+			{ 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },      
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },   
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                            
+			{ 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                            
+			{ 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                            
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                        
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                            
+			{ 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                         
+			{ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                            
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                         
+			{ 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                             
+			{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+			{ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                             
+			{ 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },                             
+			{ 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2 },                             
+			{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }                  
+		};                   
+		return action_table[new_state][new_char];          
+	} 
+         public int look_up(int new_state,int new_char)          
+         {                   
+        	 final int[][] look_up_table = new int[][]                   
+        	 { 
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },                             
+        		 { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1 },                             
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },                             
+        		 { 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3 },                             
+        		 { 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4 },                             
+        		 { 5, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 },                             
+        		 { 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47 },                             
+        		 { 6, 6, 6, 6, 6, 6, 0, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0, 6, 6, 6, 6, 6, 6, 6 },                             
+        		 { 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7 },                             
+        		 { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8 },                             
+        		 { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 },                             
+        		 { 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 },                             
+        		 { 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11 },                             
+        		 { 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12 },                             
+        		 { 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 0, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 0, 13, 13, 13, 13, 13, 13, 13 }, 
+        		 { 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14 },
+        		 { 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15 },
+        		 { 0, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 0, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 0, 16, 16 },
+        		 { 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 0, 17, 17, 17, 17, 17, 17, 17 },
+        		 { 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18 },                             
+        		 { 19, 0, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19 },
+        		 { 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20 },
+        		 { 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 0, 0, 21, 21, 21, 21, 21, 21, 21, 21, 21 },
+        		 { 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 0, 0, 22, 22, 22, 22, 22, 22, 22, 22, 22 },
+        		 { 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23 },
+        		 { 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 24, 24, 24, 24, 24, 24, 24 },
+        		 { 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25 },
+        		 { 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26 },
+        		 { 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29 },
+        		 { 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30 },
+        		 { 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 },
+        		 { 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32 },
+        		 { 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33 },
+        		 { 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34 },
+        		 { 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35, 35 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36 },
+        		 { 37, 0, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38 },
+        		 { 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39 },
+        		 { 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40 },
+        		 { 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41, 41 },
+        		 { 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42 },
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 0, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 0, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 37, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 46, 0, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46 },
+        		 { 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 0, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 46, 0, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 0, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 37, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        		 { 37, 0, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 0, 37, 37, 37, 37, 0, 37, 37, 37, 37, 37, 37 },
+        		 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+        		 };                   
+        		 
+        		 return look_up_table[new_state][new_char];          
+        		 } 
+         } 
